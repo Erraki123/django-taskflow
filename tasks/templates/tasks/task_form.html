@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}{% if is_edit %}Edit Task{% else %}New Task{% endif %}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <span class="eyebrow">{% if is_edit %}Edit{% else %}Create{% endif %}</span>
+    <h1>{% if is_edit %}Edit Task{% else %}Add New Task{% endif %}</h1>
+    <p>{% if is_edit %}Update the details for "{{ task.title }}".{% else %}Fill in the details below to create a new task.{% endif %}</p>
+  </div>
+  <a href="{% url 'tasks:list' %}" class="btn btn-tf-outline">
+    <i class="fa-solid fa-arrow-left me-2"></i>Back to Tasks
+  </a>
+</div>
+
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="tf-card tf-card-body tf-animate-in">
+      <form method="post" novalidate>
+        {% csrf_token %}
+
+        <div class="mb-3">
+          <label class="form-label">Title <span class="text-danger">*</span></label>
+          {{ form.title }}
+          {% if form.title.errors %}<div class="text-danger small mt-1">{{ form.title.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Description</label>
+          {{ form.description }}
+          {% if form.description.errors %}<div class="text-danger small mt-1">{{ form.description.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div class="row g-3 mb-1">
+          <div class="col-md-4">
+            <label class="form-label">Category</label>
+            {{ form.category }}
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Priority</label>
+            {{ form.priority }}
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Status</label>
+            {{ form.status }}
+          </div>
+        </div>
+
+        <div class="mb-1 mt-3">
+          <label class="form-label">Deadline</label>
+          {{ form.deadline }}
+          {% if form.deadline.errors %}<div class="text-danger small mt-1">{{ form.deadline.errors.0 }}</div>{% endif %}
+          <div class="form-text" style="font-size:0.78rem;">Optional — leave blank if this task has no fixed deadline.</div>
+        </div>
+
+        {% if form.category.field.queryset.count == 0 %}
+        <div class="tf-card mt-3" style="padding: 12px 16px; border-left: 4px solid var(--tf-info);">
+          <small><i class="fa-solid fa-circle-info me-1"></i>You haven't created any categories yet. <a href="{% url 'tasks:category_create' %}" style="color: var(--tf-primary); font-weight:600;">Create one</a> to keep tasks organized.</small>
+        </div>
+        {% endif %}
+
+        <div class="d-flex gap-2 mt-4">
+          <button type="submit" class="btn btn-tf-primary px-4">
+            <i class="fa-solid fa-floppy-disk me-2"></i>{% if is_edit %}Save Changes{% else %}Create Task{% endif %}
+          </button>
+          <a href="{% url 'tasks:list' %}" class="btn btn-tf-outline">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

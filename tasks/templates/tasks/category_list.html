@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Categories{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <span class="eyebrow">Organize</span>
+    <h1>Categories</h1>
+    <p>Group your tasks to stay organized across projects and areas of life.</p>
+  </div>
+  <a href="{% url 'tasks:category_create' %}" class="btn btn-tf-primary">
+    <i class="fa-solid fa-circle-plus me-2"></i>New Category
+  </a>
+</div>
+
+{% if categories %}
+<div class="row g-3">
+  {% for category in categories %}
+  <div class="col-md-4 col-sm-6">
+    <div class="tf-card tf-card-body hoverable tf-animate-in">
+      <div class="d-flex justify-content-between align-items-start">
+        <div class="d-flex align-items-center gap-2">
+          <span style="width:14px;height:14px;border-radius:4px;background:{{ category.color }};display:inline-block;"></span>
+          <h6 class="mb-0">{{ category.name }}</h6>
+        </div>
+        <form method="post" action="{% url 'tasks:category_delete' category.id %}" onsubmit="return confirm('Delete category &quot;{{ category.name }}&quot;? Its tasks will remain, but uncategorized.');">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-sm btn-tf-ghost-danger"><i class="fa-solid fa-trash"></i></button>
+        </form>
+      </div>
+      <p class="text-muted small mb-0 mt-2">{{ category.tasks.count }} task{{ category.tasks.count|pluralize }}</p>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="tf-card">
+  <div class="empty-state">
+    <div class="empty-icon"><i class="fa-solid fa-tags"></i></div>
+    <h3>No categories yet</h3>
+    <p>Create categories like "Work", "Personal", or "Health" to group related tasks together.</p>
+    <a href="{% url 'tasks:category_create' %}" class="btn btn-tf-primary"><i class="fa-solid fa-circle-plus me-2"></i>Create Your First Category</a>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

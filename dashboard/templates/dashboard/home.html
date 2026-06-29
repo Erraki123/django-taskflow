@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+  .chart-card-body { padding: 22px; height: 320px; position: relative; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <span class="eyebrow">Overview</span>
+    <h1>Welcome back, {{ request.user.first_name|default:request.user.username }} 👋</h1>
+    <p>Here's what's happening with your tasks today.</p>
+  </div>
+  <a href="{% url 'tasks:create' %}" class="btn btn-tf-primary">
+    <i class="fa-solid fa-circle-plus me-2"></i>New Task
+  </a>
+</div>
+
+{% if not has_tasks %}
+  <div class="tf-card tf-animate-in">
+    <div class="empty-state">
+      <div class="empty-icon"><i class="fa-solid fa-clipboard-list"></i></div>
+      <h3>No tasks yet</h3>
+      <p>Create your first task to start tracking progress, deadlines, and priorities — your dashboard will fill in automatically.</p>
+      <a href="{% url 'tasks:create' %}" class="btn btn-tf-primary"><i class="fa-solid fa-circle-plus me-2"></i>Create Your First Task</a>
+    </div>
+  </div>
+{% endif %}
+
+<!-- ============== STAT CARDS ============== -->
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card" style="animation-delay: 0ms;">
+      <div class="stat-icon violet"><i class="fa-solid fa-list-check"></i></div>
+      <div>
+        <div class="stat-value" data-counter="total">{{ counters.total }}</div>
+        <div class="stat-label">Total Tasks</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card" style="animation-delay: 60ms;">
+      <div class="stat-icon green"><i class="fa-solid fa-circle-check"></i></div>
+      <div>
+        <div class="stat-value" data-counter="completed">{{ counters.completed }}</div>
+        <div class="stat-label">Completed</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card" style="animation-delay: 120ms;">
+      <div class="stat-icon amber"><i class="fa-solid fa-hourglass-half"></i></div>
+      <div>
+        <div class="stat-value" data-counter="pending">{{ counters.pending }}</div>
+        <div class="stat-label">Pending</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card" style="animation-delay: 180ms;">
+      <div class="stat-icon coral"><i class="fa-solid fa-flag"></i></div>
+      <div>
+        <div class="stat-value" data-counter="high_priority">{{ counters.high_priority }}</div>
+        <div class="stat-label">High Priority</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4 mb-4">
+  <!-- ============== COMPLETION RING (signature element) ============== -->
+  <div class="col-lg-3">
+    <div class="tf-card tf-card-body h-100 d-flex flex-column align-items-center justify-content-center tf-animate-in">
+      <h6 class="text-uppercase mb-3" style="font-size:0.74rem; letter-spacing:0.06em; color:var(--tf-text-muted); font-weight:700;">Completion Rate</h6>
+      <div class="completion-ring-wrap">
+        <svg viewBox="0 0 168 168">
+          <defs>
+            <linearGradient id="tf-ring-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#6C5DD3"/>
+              <stop offset="100%" stop-color="#2ED9A3"/>
+            </linearGradient>
+          </defs>
+          <circle class="completion-ring-bg" cx="84" cy="84" r="72"></circle>
+          <circle class="completion-ring-fg" cx="84" cy="84" r="72"></circle>
+        </svg>
+        <div class="completion-ring-label">
+          <span class="pct">{{ counters.completion_rate|floatformat:0 }}%</span>
+          <span class="cap">complete</span>
+        </div>
+      </div>
+      <p class="text-muted small text-center mt-3 mb-0">{{ counters.completed }} of {{ counters.total }} tasks done</p>
+    </div>
+  </div>
+
+  <!-- ============== PIE CHART: Status ============== -->
+  <div class="col-lg-4">
+    <div class="tf-card tf-animate-in" style="animation-delay:80ms;">
+      <div class="tf-card-body pb-0">
+        <h6 class="mb-0">Tasks by Status</h6>
+      </div>
+      <div class="chart-card-body">
+        <canvas id="statusChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============== BAR CHART: Priority ============== -->
+  <div class="col-lg-5">
+    <div class="tf-card tf-animate-in" style="animation-delay:140ms;">
+      <div class="tf-card-body pb-0">
+        <h6 class="mb-0">Tasks by Priority</h6>
+      </div>
+      <div class="chart-card-body">
+        <canvas id="priorityChart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- ============== LINE CHART: Monthly ============== -->
+  <div class="col-lg-8">
+    <div class="tf-card tf-animate-in">
+      <div class="tf-card-body pb-0 d-flex justify-content-between align-items-center">
+        <h6 class="mb-0">Tasks Created — Last 6 Months</h6>
+      </div>
+      <div class="chart-card-body">
+        <canvas id="monthlyChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============== UPCOMING DEADLINES ============== -->
+  <div class="col-lg-4">
+    <div class="tf-card tf-card-body tf-animate-in h-100">
+      <h6 class="mb-3">Upcoming Deadlines</h6>
+      {% for task in upcoming_deadlines %}
+        <div class="deadline-item">
+          <div class="stat-icon {% if task.priority == 'high' %}coral{% elif task.priority == 'medium' %}amber{% else %}green{% endif %}" style="width:38px;height:38px;font-size:0.9rem;">
+            <i class="fa-solid fa-flag"></i>
+          </div>
+          <div class="flex-grow-1">
+            <a href="{% url 'tasks:detail' task.id %}" class="d-block fw-semibold" style="font-size:0.86rem; color:var(--tf-text-primary);">{{ task.title|truncatechars:28 }}</a>
+            <span class="text-muted" style="font-size:0.74rem;">{{ task.deadline|naturaltime }}</span>
+          </div>
+        </div>
+      {% empty %}
+        <p class="text-muted small mb-0">No deadlines in the next 7 days. Nice and clear!</p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- Chart data, embedded as JSON for dashboard.js to consume -->
+{{ status_chart_json|json_script:"status-chart-data" }}
+{{ priority_chart_json|json_script:"priority-chart-data" }}
+{{ monthly_chart_json|json_script:"monthly-chart-data" }}
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script>document.body.dataset.completionRate = "{{ counters.completion_rate }}";</script>
+{% load static %}
+<script src="{% static 'js/dashboard.js' %}"></script>
+{% endblock %}

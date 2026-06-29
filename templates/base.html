@@ -1,0 +1,173 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en" data-theme="{{ current_theme }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}{{ SITE_NAME }}{% endblock %} — {{ SITE_NAME }}</title>
+  <meta name="description" content="{{ SITE_TAGLINE }}">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Bootstrap 5 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+
+  <!-- TaskFlow design system -->
+  <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  {% block extra_css %}{% endblock %}
+
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2222%22 fill=%22%236C5DD3%22/><path d=%22M30 52l14 14 28-32%22 stroke=%22white%22 stroke-width=%229%22 fill=%22none%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/></svg>">
+</head>
+<body data-task-list-url="{% url 'tasks:list' %}" data-dashboard-api="{% url 'dashboard:data_api' %}">
+
+  <div class="app-shell">
+    <div class="sidebar-overlay" data-sidebar-overlay></div>
+
+    <!-- ============== SIDEBAR ============== -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-mark"><i class="fa-solid fa-check"></i></div>
+        <span class="brand-text">{{ SITE_NAME }}</span>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="sidebar-section-label">Main</div>
+        <a href="{% url 'dashboard:home' %}" class="nav-item-link {% if request.resolver_match.url_name == 'home' and request.resolver_match.namespace == 'dashboard' %}active{% endif %}">
+          <i class="fa-solid fa-grid-2"></i>
+          <span class="nav-label-text">Dashboard</span>
+        </a>
+        <a href="{% url 'tasks:list' %}" class="nav-item-link {% if request.resolver_match.namespace == 'tasks' and request.resolver_match.url_name in 'list,detail,update' %}active{% endif %}">
+          <i class="fa-solid fa-list-check"></i>
+          <span class="nav-label-text">My Tasks</span>
+        </a>
+        <a href="{% url 'tasks:create' %}" class="nav-item-link {% if request.resolver_match.url_name == 'create' %}active{% endif %}">
+          <i class="fa-solid fa-circle-plus"></i>
+          <span class="nav-label-text">Add Task</span>
+        </a>
+        <a href="{% url 'tasks:category_list' %}" class="nav-item-link {% if request.resolver_match.url_name == 'category_list' %}active{% endif %}">
+          <i class="fa-solid fa-tags"></i>
+          <span class="nav-label-text">Categories</span>
+        </a>
+
+        <div class="sidebar-section-label">Account</div>
+        <a href="{% url 'accounts:profile' %}" class="nav-item-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+          <i class="fa-solid fa-user"></i>
+          <span class="nav-label-text">Profile</span>
+        </a>
+        {% if request.user.is_staff %}
+        <a href="{% url 'admin:index' %}" class="nav-item-link">
+          <i class="fa-solid fa-shield-halved"></i>
+          <span class="nav-label-text">Admin Panel</span>
+        </a>
+        {% endif %}
+        <a href="{% url 'accounts:logout' %}" class="nav-item-link">
+          <i class="fa-solid fa-right-from-bracket"></i>
+          <span class="nav-label-text">Sign Out</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button type="button" class="sidebar-collapse-btn" data-sidebar-collapse>
+          <i class="fa-solid fa-angles-left"></i>
+          <span class="sidebar-footer-text">Collapse</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- ============== MAIN COLUMN ============== -->
+    <div class="main-column">
+      <header class="topbar">
+        <div class="d-flex align-items-center gap-2">
+          <button type="button" class="icon-btn d-lg-none" data-sidebar-mobile-toggle aria-label="Open menu">
+            <i class="fa-solid fa-bars"></i>
+          </button>
+          <div class="topbar-search">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" placeholder="Search tasks..." onkeydown="if(event.key==='Enter'){window.location.href='{% url 'tasks:list' %}?q='+encodeURIComponent(this.value);}">
+          </div>
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+          <button type="button" class="theme-toggle-switch" data-theme-toggle role="switch" aria-checked="false" aria-label="Toggle dark mode">
+            <span class="knob"><i class="fa-solid fa-moon" data-theme-icon style="font-size:0.6rem;"></i></span>
+          </button>
+
+          <button type="button" class="icon-btn" data-bs-toggle="dropdown" aria-label="Notifications">
+            <i class="fa-solid fa-bell"></i>
+            {% if upcoming_deadlines %}<span class="dot"></span>{% endif %}
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end p-2" style="width: 320px; border-radius: var(--tf-radius-md); border-color: var(--tf-border);">
+            <li class="px-2 py-1 fw-bold" style="color: var(--tf-text-primary);">Notifications</li>
+            <li><hr class="dropdown-divider"></li>
+            {% for task in upcoming_deadlines|slice:":4" %}
+            <li>
+              <a class="dropdown-item rounded-2" href="{% url 'tasks:detail' task.id %}">
+                <div class="d-flex align-items-center gap-2">
+                  <i class="fa-solid fa-clock text-warning"></i>
+                  <div class="small">
+                    <div class="fw-semibold">{{ task.title|truncatechars:30 }}</div>
+                    <div class="text-muted" style="font-size:0.74rem;">Due {{ task.deadline|date:"M d, H:i" }}</div>
+                  </div>
+                </div>
+              </a>
+            </li>
+            {% empty %}
+            <li class="px-2 py-3 text-center text-muted small">You're all caught up — no upcoming deadlines.</li>
+            {% endfor %}
+          </ul>
+
+          <div class="user-chip" data-bs-toggle="dropdown">
+            <div class="avatar-circle">
+              {% if request.user.profile.avatar_url %}
+                <img src="{{ request.user.profile.avatar_url }}" alt="{{ request.user.username }}">
+              {% else %}
+                {{ request.user.profile.initials }}
+              {% endif %}
+            </div>
+            <div class="d-none d-md-block text-start">
+              <div class="fw-semibold" style="font-size:0.85rem; line-height:1.1;">{{ request.user.first_name|default:request.user.username }}</div>
+              <div class="text-muted" style="font-size:0.72rem;">{{ request.user.email|truncatechars:22 }}</div>
+            </div>
+            <i class="fa-solid fa-chevron-down d-none d-md-block" style="font-size:0.7rem; color:var(--tf-text-muted);"></i>
+          </div>
+          <ul class="dropdown-menu dropdown-menu-end p-2" style="border-radius: var(--tf-radius-md); border-color: var(--tf-border);">
+            <li><a class="dropdown-item rounded-2" href="{% url 'accounts:profile' %}"><i class="fa-solid fa-user me-2"></i>My Profile</a></li>
+            <li><a class="dropdown-item rounded-2" href="{% url 'tasks:category_list' %}"><i class="fa-solid fa-tags me-2"></i>Categories</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item rounded-2 text-danger" href="{% url 'accounts:logout' %}"><i class="fa-solid fa-right-from-bracket me-2"></i>Sign Out</a></li>
+          </ul>
+        </div>
+      </header>
+
+      <main class="page-content">
+        {% if messages %}
+          <div class="mb-3">
+            {% for message in messages %}
+              <div class="tf-card mb-2 tf-animate-in" style="padding: 14px 18px; border-left: 4px solid {% if message.tags == 'success' %}var(--tf-success){% elif message.tags == 'error' %}var(--tf-danger){% elif message.tags == 'warning' %}var(--tf-warning){% else %}var(--tf-info){% endif %};">
+                <div class="d-flex align-items-center gap-2">
+                  <i class="fa-solid {% if message.tags == 'success' %}fa-circle-check text-success{% elif message.tags == 'error' %}fa-circle-exclamation text-danger{% elif message.tags == 'warning' %}fa-triangle-exclamation text-warning{% else %}fa-circle-info text-info{% endif %}"></i>
+                  <span style="font-size: 0.9rem;">{{ message }}</span>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+  </div>
+
+  <!-- Bootstrap 5 JS bundle -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+  <script src="{% static 'js/theme.js' %}"></script>
+  <script src="{% static 'js/sidebar.js' %}"></script>
+  <script src="{% static 'js/toast.js' %}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

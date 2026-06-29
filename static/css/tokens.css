@@ -1,0 +1,89 @@
+/* ===========================================================
+   TaskFlow — Design Tokens
+   Single source of truth for color, spacing, type and motion.
+   Both light and dark themes derive from the same token names,
+   so components never hardcode a color — they reference a token.
+   =========================================================== */
+
+:root {
+  /* --- Brand --- */
+  --tf-primary: #6C5DD3;
+  --tf-primary-dark: #5746C9;
+  --tf-primary-light: #8B7FE8;
+  --tf-primary-soft: #EFEBFC;
+
+  /* --- Signal colors --- */
+  --tf-success: #2ED9A3;
+  --tf-success-soft: #E3FBF3;
+  --tf-warning: #FFA73B;
+  --tf-warning-soft: #FFF3E2;
+  --tf-danger: #FF6B6B;
+  --tf-danger-soft: #FFE9E9;
+  --tf-info: #4FB6F0;
+  --tf-info-soft: #E6F6FE;
+
+  /* --- Type scale --- */
+  --tf-font-display: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --tf-font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* --- Radii --- */
+  --tf-radius-sm: 8px;
+  --tf-radius-md: 14px;
+  --tf-radius-lg: 20px;
+  --tf-radius-pill: 999px;
+
+  /* --- Shadows --- */
+  --tf-shadow-sm: 0 2px 8px rgba(28, 24, 64, 0.06);
+  --tf-shadow-md: 0 8px 24px rgba(28, 24, 64, 0.10);
+  --tf-shadow-lg: 0 16px 40px rgba(28, 24, 64, 0.14);
+
+  /* --- Motion --- */
+  --tf-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --tf-duration-fast: 150ms;
+  --tf-duration-base: 250ms;
+  --tf-duration-slow: 450ms;
+
+  /* --- Layout --- */
+  --tf-sidebar-width: 264px;
+  --tf-sidebar-width-collapsed: 84px;
+  --tf-topbar-height: 72px;
+}
+
+/* ===================== LIGHT THEME (default) ===================== */
+:root,
+html[data-theme="light"] {
+  --tf-bg: #F7F7FC;
+  --tf-bg-elevated: #FFFFFF;
+  --tf-bg-subtle: #F0EFF9;
+  --tf-surface: #FFFFFF;
+  --tf-border: #E7E5F3;
+  --tf-text-primary: #1C1834;
+  --tf-text-secondary: #6E6A86;
+  --tf-text-muted: #9C98B4;
+  --tf-sidebar-bg: #1C1834;
+  --tf-sidebar-text: #C9C5E0;
+  --tf-sidebar-text-active: #FFFFFF;
+  --tf-sidebar-hover: rgba(255, 255, 255, 0.06);
+}
+
+/* ===================== DARK THEME ===================== */
+html[data-theme="dark"] {
+  --tf-bg: #0F0E1B;
+  --tf-bg-elevated: #181830;
+  --tf-bg-subtle: #1F1E38;
+  --tf-surface: #181830;
+  --tf-border: #2C2A4A;
+  --tf-text-primary: #F1F0FA;
+  --tf-text-secondary: #ABA8C7;
+  --tf-text-muted: #7C7896;
+  --tf-sidebar-bg: #0B0A16;
+  --tf-sidebar-text: #ABA8C7;
+  --tf-sidebar-text-active: #FFFFFF;
+  --tf-sidebar-hover: rgba(255, 255, 255, 0.05);
+
+  --tf-primary-soft: #2A2452;
+  --tf-success-soft: #133B33;
+  --tf-warning-soft: #3A2C12;
+  --tf-danger-soft: #3B1F25;
+  --tf-info-soft: #16303F;
+}
