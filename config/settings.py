@@ -21,11 +21,9 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-dev-key-change-me')
 DEBUG = config('DEBUG', default=False, cast=bool)
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='127.0.0.1,localhost', cast=Csv())
 
-CSRF_TRUSTED_ORIGINS = config(
-    'CSRF_TRUSTED_ORIGINS',
-    default='https://*.up.railway.app',
-    cast=Csv()
-)
+CSRF_TRUSTED_ORIGINS = [
+    'https://django-taskflow-production.up.railway.app',
+]
 
 # ----------------------------------------------------------------------
 # Applications
